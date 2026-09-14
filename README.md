@@ -1,5 +1,7 @@
 # 送报少年 · 雪松巷的清晨
 
+**🎮 线上试玩：<https://geegl.github.io/paper-route/>**
+
 一个纯浏览器 3D 送报游戏——灵感与玩法复刻自 [PaperRoute](https://paperroute.lol)（Paperboy 式投递游戏）。
 整个世界**全部由代码程序化生成**（低多边形 + 顶点色），不依赖任何模型、贴图、音频文件，离线可玩。
 
