@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#14181f">
+  <title>送报少年 · 雪松巷的清晨</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📬</text></svg>">
+  <script type="importmap">
+    { "imports": { "three": "./lib/three.module.min.js" } }
+  </script>
+  <script>
+    // 调试用：收集页面错误，可在控制台查看 window.__errors
+    window.__errors = [];
+    window.addEventListener('error', (e) => window.__errors.push(e.message + ' @' + (e.filename || '').split('/').pop() + ':' + e.lineno));
+    window.addEventListener('unhandledrejection', (e) => window.__errors.push('promise: ' + e.reason));
+  </script>
+</head>
+<body>
+  <div id="boot">
+    <div class="boot-paper">
+      <div class="boot-title">送报少年</div>
+      <div class="boot-sub">正在铺开清晨的街道…</div>
+    </div>
+  </div>
+  <canvas id="game" role="img" aria-label="送报少年 3D 游戏画面"></canvas>
+  <div id="flash"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="hud-top">
+      <div id="hud-left" class="chip">
+        <span id="hud-day"></span>
+        <span class="sep">|</span>
+        <span id="hud-score">0</span>
+        <span id="hud-streak"></span>
+      </div>
+      <div id="radar"></div>
+      <div id="hud-right" class="chip">
+        <span id="hud-lives"></span>
+        <span class="sep">|</span>
+        <span id="hud-subs"></span>
+      </div>
+    </div>
+    <div id="hud-timer"></div>
+    <div id="toasts"></div>
+    <div id="touch-hint">左半屏左右滑动转向 · 右下按钮投掷 / 蹬车</div>
+    <div class="tbtn pause" id="btn-pause-touch">⏸</div>
+    <div id="hud-hint">← → 转向 · ↑ 冲刺 · ↓ 刹车 · 空格 投掷 · X 猛投 · Esc 暂停 · M 静音</div>
+    <div id="touch-left"></div>
+    <div id="touch-buttons">
+      <div class="tbtn" id="btn-boost">蹬</div>
+      <div class="tbtn" id="btn-brake">刹</div>
+      <div class="tbtn" id="btn-smash">砸</div>
+      <div class="tbtn big" id="btn-throw">投</div>
+    </div>
+  </div>
+
+  <!-- 主菜单 -->
+  <div class="screen" id="screen-menu">
+    <div class="paper menu-paper">
+      <div class="menu-seal">晨</div>
+      <div class="masthead-sub">CEDAR HOLLOW MORNING POST</div>
+      <h1 class="masthead">送报少年</h1>
+      <p class="tagline">雪松巷的七个清晨 · 骑上自行车，把报纸投进每一个竖起旗子的信箱</p>
+      <div class="btn-col">
+        <button class="btn primary" id="btn-start">开始新的一周</button>
+        <button class="btn" id="btn-training">训练场</button>
+        <div class="btn-row">
+          <button class="btn" id="btn-board">排行榜</button>
+          <button class="btn" id="btn-help">玩法说明</button>
+        </div>
+        <button class="btn small" id="btn-mute-menu">音效：开</button>
+      </div>
+      <div id="menu-best" class="menu-best"></div>
+      <div class="footnote">纯代码程序化生成的低多边形世界 · 灵感来自 PaperRoute</div>
+    </div>
+  </div>
+
+  <!-- 玩法说明 -->
+  <div class="screen" id="screen-help">
+    <div class="paper">
+      <h2 class="head2">玩法说明</h2>
+      <div class="rule-block">
+        <h3>目标</h3>
+        <p>把报纸投进<b>竖着红旗的信箱</b>（订户）。漏投一次订户就退订；砸了订户的窗户也会退订。没插旗的信箱不用理。</p>
+      </div>
+      <div class="rule-block">
+        <h3>操作（键盘 / 鼠标）</h3>
+        <p>← → 或 A D 转向 · ↑ 冲刺 · ↓ 刹车<br>
+        <b>空格 / 左键</b> 投掷（信箱亮起时出手）· <b>X / 右键</b> 猛投（砸窗、引开狗）<br>
+        鼠标指向信箱可精确瞄准 · Esc 暂停 · M 静音</p>
+      </div>
+      <div class="rule-block">
+        <h3>操作（触屏）</h3>
+        <p>左半屏左右滑动转向 · 右下按钮：投 / 砸 / 蹬 / 刹</p>
+      </div>
+      <div class="rule-block">
+        <h3>小贴士</h3>
+        <p>· 连续妥投，倍率最高 ×5；完美清晨 +2500 还会吸引新订户<br>
+        · 狗在 30 米外就会追上来——被追就甩一份报纸引开它<br>
+        · 汽车和坑洞会让你摔车，摔一次掉一颗心<br>
+        · 雨天路滑，转向变钝、刹车变长<br>
+        · 一周七天难度递增，每天按表现评级 S / A / B / C</p>
+      </div>
+      <button class="btn" id="btn-help-back">返回</button>
+    </div>
+  </div>
+
+  <!-- 排行榜 -->
+  <div class="screen" id="screen-board">
+    <div class="paper">
+      <h2 class="head2">本周荣誉榜</h2>
+      <ol id="board-list"></ol>
+      <button class="btn" id="btn-board-back">返回</button>
+    </div>
+  </div>
+
+  <!-- 每日简报 -->
+  <div class="screen" id="screen-brief">
+    <div class="paper">
+      <div class="masthead-sub">今日简报</div>
+      <h2 class="head2" id="brief-day"></h2>
+      <p id="brief-tip" class="brief-tip"></p>
+      <div id="brief-stats" class="stat-row"></div>
+      <button class="btn primary" id="btn-brief-go">开始送报</button>
+      <div class="kbd-hint">键盘玩家可按 空格 / 回车 出发</div>
+    </div>
+  </div>
+
+  <!-- 每日结算（报纸头版） -->
+  <div class="screen" id="screen-results">
+    <div class="paper">
+      <div class="masthead-sub" id="res-date"></div>
+      <h2 class="headline" id="res-headline"></h2>
+      <div class="result-grid">
+        <div class="result-stats" id="res-stats"></div>
+        <div class="grade-box"><div class="grade" id="res-grade"></div><div class="grade-label">今日评级</div></div>
+      </div>
+      <div id="res-stamp">号外</div>
+      <p id="res-flavor" class="flavor"></p>
+      <button class="btn primary" id="btn-next"></button>
+    </div>
+  </div>
+
+  <!-- 一周总结 / 停刊通知 -->
+  <div class="screen" id="screen-final">
+    <div class="paper">
+      <div class="masthead-sub">雪松巷晨报 · 特刊</div>
+      <h2 class="headline" id="final-headline"></h2>
+      <p id="final-reason" class="flavor"></p>
+      <div id="final-grades" class="grade-chips"></div>
+      <div class="final-stats">
+        <div><i>一周总分</i><b id="final-total">0</b></div>
+        <div><i>最终订户</i><b id="final-subs">0</b></div>
+      </div>
+      <div id="final-saverow" class="save-row">
+        <input id="final-name" maxlength="8" placeholder="留下大名">
+        <button class="btn" id="btn-save-score">登上荣誉榜</button>
+      </div>
+      <div id="save-note" class="save-note"></div>
+      <div class="btn-row">
+        <button class="btn primary" id="btn-again">再来一周</button>
+        <button class="btn" id="btn-menu2">回主菜单</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 暂停 -->
+  <div class="screen" id="screen-pause">
+    <div class="paper">
+      <h2 class="head2">暂停</h2>
+      <div class="btn-col">
+        <button class="btn primary" id="btn-resume">继续（Esc）</button>
+        <button class="btn" id="btn-pause-mute">音效：开</button>
+        <button class="btn" id="btn-quit">放弃并回主菜单</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
